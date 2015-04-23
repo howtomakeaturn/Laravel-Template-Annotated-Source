@@ -16,6 +16,17 @@ class ViewServiceProvider extends ServiceProvider {
 	 */
 	public function register()
 	{
+         // 囉哩叭縮。反正就是在IoC container裡面綁定：
+
+         // 'view.engine.resolver' => EngineResolver
+
+         // 'blade.compiler' => BladeCompiler
+         
+         // 然後EngineResolver自己也是IoC container，裡面再綁定：
+
+         // 'php' => PhpEngine
+
+         // 'blade' => CompilerEngine
 		$this->registerEngineResolver();
 
 		$this->registerViewFinder();

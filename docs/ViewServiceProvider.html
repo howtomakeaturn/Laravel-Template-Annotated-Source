@@ -11,44 +11,6 @@
   <div id="container">
     <div id="background"></div>
     
-      <ul id="jump_to">
-        <li>
-          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
-          <a class="small" href="javascript:void(0);">+</a>
-          <div id="jump_wrapper">
-          <div id="jump_page_wrapper">
-            <div id="jump_page">
-              
-                
-                <a class="source" href="Factory.html">
-                  Factory.php
-                </a>
-              
-                
-                <a class="source" href="FileViewFinder.html">
-                  FileViewFinder.php
-                </a>
-              
-                
-                <a class="source" href="View.html">
-                  View.php
-                </a>
-              
-                
-                <a class="source" href="ViewFinderInterface.html">
-                  ViewFinderInterface.php
-                </a>
-              
-                
-                <a class="source" href="ViewServiceProvider.html">
-                  ViewServiceProvider.php
-                </a>
-              
-            </div>
-          </div>
-        </li>
-      </ul>
-    
     <ul class="sections">
         
           <li id="title">
@@ -85,10 +47,7 @@
 	 *<span class="hljs-phpdoc"> @return</span> void
 	 */</span>
 	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">register</span><span class="hljs-params">()</span>
-	</span>{
-		<span class="hljs-variable">$this</span>-&gt;registerEngineResolver();
-
-		<span class="hljs-variable">$this</span>-&gt;registerViewFinder();</pre></div></div>
+	</span>{</pre></div></div>
             
         </li>
         
@@ -98,6 +57,88 @@
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>囉哩叭縮。反正就是在IoC container裡面綁定：</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>‘view.engine.resolver’ =&gt; EngineResolver</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>‘blade.compiler’ =&gt; BladeCompiler</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>然後EngineResolver自己也是IoC container，裡面再綁定：</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>‘php’ =&gt; PhpEngine</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>‘blade’ =&gt; CompilerEngine</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-variable">$this</span>-&gt;registerEngineResolver();
+
+		<span class="hljs-variable">$this</span>-&gt;registerViewFinder();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <p>Once the other components have been registered we’re ready to include the
 view environment and session binder. The session binder will bind onto
@@ -124,11 +165,11 @@ the “before” application event and add errors into shared view data.</p>
         </li>
         
         
-        <li id="section-3">
+        <li id="section-9">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-3">&#182;</a>
+                <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
               <p>Next we will register the various engines with the resolver so that the
 environment can resolve the engines it needs for various views based
@@ -169,11 +210,11 @@ on the extension of view files. We call a method for each engines.</p>
         </li>
         
         
-        <li id="section-4">
+        <li id="section-10">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-4">&#182;</a>
+                <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
               <p>The Compiler engine requires an instance of the CompilerInterface, which in
 this case will be the Blade compiler, so we’ll first create the compiler
@@ -222,11 +263,11 @@ instance to pass into the engine so it can compile the views properly.</p>
         </li>
         
         
-        <li id="section-5">
+        <li id="section-11">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+                <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
               <p>Next we need to grab the engine resolver instance that will be used by the
 environment. The resolver will be used by an environment to get each of
@@ -243,11 +284,11 @@ the various engine implementations such as plain PHP or Blade engine.</p>
         </li>
         
         
-        <li id="section-6">
+        <li id="section-12">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+                <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
               <p>We will also set the container instance on this view environment since the
 view composers may be classes registered in the container, which allows
@@ -278,11 +319,11 @@ for great testable, flexible composers for the application developer.</p>
         </li>
         
         
-        <li id="section-7">
+        <li id="section-13">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+                <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
               <p>If the current session has an “errors” variable bound to it, we will share
 its value with all view instances so the views can easily access errors
@@ -300,11 +341,11 @@ without having to bind. An empty bag is set when there aren’t errors.</p>
         </li>
         
         
-        <li id="section-8">
+        <li id="section-14">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
+                <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
               <p>Putting the errors in the view for every view allows the developer to just
 assume that some errors are always available, which is convenient since
