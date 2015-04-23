@@ -68,9 +68,35 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-preprocessor">&lt;?php</span> <span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">View</span>\<span class="hljs-title">Engines</span>;
+            <div class="content"><div class='highlight'><pre><span class="hljs-preprocessor">&lt;?php</span> <span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">View</span>\<span class="hljs-title">Engines</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>大膽預測：既然這個php engine是用來處理.php檔的，它八成沒做多少狗屁事</p>
 
-<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PhpEngine</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">EngineInterface</span> </span>{
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>它八成大方回傳內容而已！因為PHP本身就是你他媽的PHP引擎阿</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PhpEngine</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">EngineInterface</span> </span>{
 
 	<span class="hljs-comment">/**
 	 * Get the evaluated contents of the view.
@@ -82,9 +108,35 @@
 	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">get</span><span class="hljs-params">(<span class="hljs-variable">$path</span>, array <span class="hljs-variable">$data</span> = array<span class="hljs-params">()</span>)</span>
 	</span>{
 		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;evaluatePath(<span class="hljs-variable">$path</span>, <span class="hljs-variable">$data</span>);
-	}
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>這個雞巴函式跟get根本一模一樣。註解還可以不一樣，靠！</p>
 
-	<span class="hljs-comment">/**
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>就承認get是為了對使用者友善而存在就好了嘛！</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-comment">/**
 	 * Get the evaluated contents of the view at the given path.
 	 *
 	 *<span class="hljs-phpdoc"> @param</span>  string  $__path
@@ -92,8 +144,35 @@
 	 *<span class="hljs-phpdoc"> @return</span> string
 	 */</span>
 	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">evaluatePath</span><span class="hljs-params">(<span class="hljs-variable">$__path</span>, <span class="hljs-variable">$__data</span>)</span>
-	</span>{
-		<span class="hljs-variable">$obLevel</span> = ob_get_level();
+	</span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>果然沒做多少雞巴事</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>只是先開再關php的output buffering而已</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-variable">$obLevel</span> = ob_get_level();
 
 		ob_start();
 
@@ -102,11 +181,11 @@
         </li>
         
         
-        <li id="section-2">
+        <li id="section-8">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-2">&#182;</a>
+                <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <p>We’ll evaluate the contents of the view inside a try/catch block so we can
 flush out any stray output that might get out before an error occurs or
@@ -136,8 +215,35 @@ an exception is thrown. This prevents any partial views from leaking.</p>
 	 *<span class="hljs-phpdoc"> @throws</span> $e
 	 */</span>
 	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">handleViewException</span><span class="hljs-params">(<span class="hljs-variable">$e</span>, <span class="hljs-variable">$obLevel</span>)</span>
-	</span>{
-		<span class="hljs-keyword">while</span> (ob_get_level() &gt; <span class="hljs-variable">$obLevel</span>)
+	</span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>隨便啦，反正這個函式就是把遇到的例外…用力搞定啦</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>哈哈</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">while</span> (ob_get_level() &gt; <span class="hljs-variable">$obLevel</span>)
 		{
 			ob_end_clean();
 		}
