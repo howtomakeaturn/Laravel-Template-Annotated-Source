@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>FileViewFinder.php</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="Factory.html">
+                  Factory.php
+                </a>
+              
+                
+                <a class="source" href="FileViewFinder.html">
+                  FileViewFinder.php
+                </a>
+              
+                
+                <a class="source" href="View.html">
+                  View.php
+                </a>
+              
+                
+                <a class="source" href="ViewFinderInterface.html">
+                  ViewFinderInterface.php
+                </a>
+              
+                
+                <a class="source" href="ViewServiceProvider.html">
+                  ViewServiceProvider.php
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>FileViewFinder.php</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-preprocessor">&lt;?php</span> <span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">View</span>;
+
+<span class="hljs-keyword">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Filesystem</span>\<span class="hljs-title">Filesystem</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FileViewFinder</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ViewFinderInterface</span> </span>{
+
+	<span class="hljs-comment">/**
+	 * The filesystem instance.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> \Illuminate\Filesystem\Filesystem
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$files</span>;
+
+	<span class="hljs-comment">/**
+	 * The array of active view paths.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$paths</span>;
+
+	<span class="hljs-comment">/**
+	 * The array of views that have been located.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$views</span> = <span class="hljs-keyword">array</span>();
+
+	<span class="hljs-comment">/**
+	 * The namespace to file path hints.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$hints</span> = <span class="hljs-keyword">array</span>();
+
+	<span class="hljs-comment">/**
+	 * Register a view extension with the finder.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$extensions</span> = <span class="hljs-keyword">array</span>(<span class="hljs-string">'blade.php'</span>, <span class="hljs-string">'php'</span>);
+
+	<span class="hljs-comment">/**
+	 * Hint path delimiter value.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> string
+	 */</span>
+	<span class="hljs-keyword">const</span> HINT_PATH_DELIMITER = <span class="hljs-string">'::'</span>;
+
+	<span class="hljs-comment">/**
+	 * Create a new file view loader instance.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  \Illuminate\Filesystem\Filesystem  $files
+	 *<span class="hljs-phpdoc"> @param</span>  array  $paths
+	 *<span class="hljs-phpdoc"> @param</span>  array  $extensions
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">(Filesystem <span class="hljs-variable">$files</span>, array <span class="hljs-variable">$paths</span>, array <span class="hljs-variable">$extensions</span> = null)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;files = <span class="hljs-variable">$files</span>;
+		<span class="hljs-variable">$this</span>-&gt;paths = <span class="hljs-variable">$paths</span>;
+
+		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$extensions</span>))
+		{
+			<span class="hljs-variable">$this</span>-&gt;extensions = <span class="hljs-variable">$extensions</span>;
+		}
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the fully qualified location of the view.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $name
+	 *<span class="hljs-phpdoc"> @return</span> string
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">find</span><span class="hljs-params">(<span class="hljs-variable">$name</span>)</span>
+	</span>{
+		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$this</span>-&gt;views[<span class="hljs-variable">$name</span>])) <span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;views[<span class="hljs-variable">$name</span>];
+
+		<span class="hljs-keyword">if</span> (<span class="hljs-variable">$this</span>-&gt;hasHintInformation(<span class="hljs-variable">$name</span> = trim(<span class="hljs-variable">$name</span>)))
+		{
+			<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;views[<span class="hljs-variable">$name</span>] = <span class="hljs-variable">$this</span>-&gt;findNamedPathView(<span class="hljs-variable">$name</span>);
+		}
+
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;views[<span class="hljs-variable">$name</span>] = <span class="hljs-variable">$this</span>-&gt;findInPaths(<span class="hljs-variable">$name</span>, <span class="hljs-variable">$this</span>-&gt;paths);
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the path to a template with a named path.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $name
+	 *<span class="hljs-phpdoc"> @return</span> string
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">findNamedPathView</span><span class="hljs-params">(<span class="hljs-variable">$name</span>)</span>
+	</span>{
+		<span class="hljs-keyword">list</span>(<span class="hljs-variable">$namespace</span>, <span class="hljs-variable">$view</span>) = <span class="hljs-variable">$this</span>-&gt;getNamespaceSegments(<span class="hljs-variable">$name</span>);
+
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;findInPaths(<span class="hljs-variable">$view</span>, <span class="hljs-variable">$this</span>-&gt;hints[<span class="hljs-variable">$namespace</span>]);
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the segments of a template with a named path.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $name
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 *
+	 *<span class="hljs-phpdoc"> @throws</span> \InvalidArgumentException
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getNamespaceSegments</span><span class="hljs-params">(<span class="hljs-variable">$name</span>)</span>
+	</span>{
+		<span class="hljs-variable">$segments</span> = explode(<span class="hljs-keyword">static</span>::HINT_PATH_DELIMITER, <span class="hljs-variable">$name</span>);
+
+		<span class="hljs-keyword">if</span> (count(<span class="hljs-variable">$segments</span>) != <span class="hljs-number">2</span>)
+		{
+			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> \InvalidArgumentException(<span class="hljs-string">"View [$name] has an invalid name."</span>);
+		}
+
+		<span class="hljs-keyword">if</span> ( ! <span class="hljs-keyword">isset</span>(<span class="hljs-variable">$this</span>-&gt;hints[<span class="hljs-variable">$segments</span>[<span class="hljs-number">0</span>]]))
+		{
+			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> \InvalidArgumentException(<span class="hljs-string">"No hint path defined for [{$segments[0]}]."</span>);
+		}
+
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$segments</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Find the given view in the list of paths.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $name
+	 *<span class="hljs-phpdoc"> @param</span>  array   $paths
+	 *<span class="hljs-phpdoc"> @return</span> string
+	 *
+	 *<span class="hljs-phpdoc"> @throws</span> \InvalidArgumentException
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">findInPaths</span><span class="hljs-params">(<span class="hljs-variable">$name</span>, <span class="hljs-variable">$paths</span>)</span>
+	</span>{
+		<span class="hljs-keyword">foreach</span> ((<span class="hljs-keyword">array</span>) <span class="hljs-variable">$paths</span> <span class="hljs-keyword">as</span> <span class="hljs-variable">$path</span>)
+		{
+			<span class="hljs-keyword">foreach</span> (<span class="hljs-variable">$this</span>-&gt;getPossibleViewFiles(<span class="hljs-variable">$name</span>) <span class="hljs-keyword">as</span> <span class="hljs-variable">$file</span>)
+			{
+				<span class="hljs-keyword">if</span> (<span class="hljs-variable">$this</span>-&gt;files-&gt;exists(<span class="hljs-variable">$viewPath</span> = <span class="hljs-variable">$path</span>.<span class="hljs-string">'/'</span>.<span class="hljs-variable">$file</span>))
+				{
+					<span class="hljs-keyword">return</span> <span class="hljs-variable">$viewPath</span>;
+				}
+			}
+		}
+
+		<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> \InvalidArgumentException(<span class="hljs-string">"View [$name] not found."</span>);
+	}
+
+	<span class="hljs-comment">/**
+	 * Get an array of possible view files.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $name
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getPossibleViewFiles</span><span class="hljs-params">(<span class="hljs-variable">$name</span>)</span>
+	</span>{
+		<span class="hljs-keyword">return</span> array_map(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(<span class="hljs-variable">$extension</span>)</span> <span class="hljs-title">use</span> <span class="hljs-params">(<span class="hljs-variable">$name</span>)</span>
+		</span>{
+			<span class="hljs-keyword">return</span> str_replace(<span class="hljs-string">'.'</span>, <span class="hljs-string">'/'</span>, <span class="hljs-variable">$name</span>).<span class="hljs-string">'.'</span>.<span class="hljs-variable">$extension</span>;
+
+		}, <span class="hljs-variable">$this</span>-&gt;extensions);
+	}
+
+	<span class="hljs-comment">/**
+	 * Add a location to the finder.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $location
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addLocation</span><span class="hljs-params">(<span class="hljs-variable">$location</span>)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;paths[] = <span class="hljs-variable">$location</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Add a namespace hint to the finder.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $namespace
+	 *<span class="hljs-phpdoc"> @param</span>  string|array  $hints
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addNamespace</span><span class="hljs-params">(<span class="hljs-variable">$namespace</span>, <span class="hljs-variable">$hints</span>)</span>
+	</span>{
+		<span class="hljs-variable">$hints</span> = (<span class="hljs-keyword">array</span>) <span class="hljs-variable">$hints</span>;
+
+		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$this</span>-&gt;hints[<span class="hljs-variable">$namespace</span>]))
+		{
+			<span class="hljs-variable">$hints</span> = array_merge(<span class="hljs-variable">$this</span>-&gt;hints[<span class="hljs-variable">$namespace</span>], <span class="hljs-variable">$hints</span>);
+		}
+
+		<span class="hljs-variable">$this</span>-&gt;hints[<span class="hljs-variable">$namespace</span>] = <span class="hljs-variable">$hints</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Prepend a namespace hint to the finder.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $namespace
+	 *<span class="hljs-phpdoc"> @param</span>  string|array  $hints
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">prependNamespace</span><span class="hljs-params">(<span class="hljs-variable">$namespace</span>, <span class="hljs-variable">$hints</span>)</span>
+	</span>{
+		<span class="hljs-variable">$hints</span> = (<span class="hljs-keyword">array</span>) <span class="hljs-variable">$hints</span>;
+
+		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$this</span>-&gt;hints[<span class="hljs-variable">$namespace</span>]))
+		{
+			<span class="hljs-variable">$hints</span> = array_merge(<span class="hljs-variable">$hints</span>, <span class="hljs-variable">$this</span>-&gt;hints[<span class="hljs-variable">$namespace</span>]);
+		}
+
+		<span class="hljs-variable">$this</span>-&gt;hints[<span class="hljs-variable">$namespace</span>] = <span class="hljs-variable">$hints</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Register an extension with the view finder.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $extension
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addExtension</span><span class="hljs-params">(<span class="hljs-variable">$extension</span>)</span>
+	</span>{
+		<span class="hljs-keyword">if</span> ((<span class="hljs-variable">$index</span> = array_search(<span class="hljs-variable">$extension</span>, <span class="hljs-variable">$this</span>-&gt;extensions)) !== <span class="hljs-keyword">false</span>)
+		{
+			<span class="hljs-keyword">unset</span>(<span class="hljs-variable">$this</span>-&gt;extensions[<span class="hljs-variable">$index</span>]);
+		}
+
+		array_unshift(<span class="hljs-variable">$this</span>-&gt;extensions, <span class="hljs-variable">$extension</span>);
+	}
+
+	<span class="hljs-comment">/**
+	 * Returns whether or not the view specify a hint information.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $name
+	 *<span class="hljs-phpdoc"> @return</span> boolean
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">hasHintInformation</span><span class="hljs-params">(<span class="hljs-variable">$name</span>)</span>
+	</span>{
+		<span class="hljs-keyword">return</span> strpos(<span class="hljs-variable">$name</span>, <span class="hljs-keyword">static</span>::HINT_PATH_DELIMITER) &gt; <span class="hljs-number">0</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the filesystem instance.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> \Illuminate\Filesystem\Filesystem
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getFilesystem</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;files;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the active view paths.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getPaths</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;paths;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the namespace to file path hints.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getHints</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;hints;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get registered extensions.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getExtensions</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;extensions;
+	}
+
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

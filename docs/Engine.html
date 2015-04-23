@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Engine.php</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="CompilerEngine.html">
+                  CompilerEngine.php
+                </a>
+              
+                
+                <a class="source" href="Engine.html">
+                  Engine.php
+                </a>
+              
+                
+                <a class="source" href="EngineInterface.html">
+                  EngineInterface.php
+                </a>
+              
+                
+                <a class="source" href="EngineResolver.html">
+                  EngineResolver.php
+                </a>
+              
+                
+                <a class="source" href="PhpEngine.html">
+                  PhpEngine.php
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>Engine.php</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-preprocessor">&lt;?php</span> <span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">View</span>\<span class="hljs-title">Engines</span>;
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Engine</span> </span>{
+
+	<span class="hljs-comment">/**
+	 * The view that was last to be rendered.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> string
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$lastRendered</span>;
+
+	<span class="hljs-comment">/**
+	 * Get the last view that was rendered.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> string
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getLastRendered</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;lastRendered;
+	}
+
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Factory.php</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="Factory.html">
+                  Factory.php
+                </a>
+              
+                
+                <a class="source" href="FileViewFinder.html">
+                  FileViewFinder.php
+                </a>
+              
+                
+                <a class="source" href="View.html">
+                  View.php
+                </a>
+              
+                
+                <a class="source" href="ViewFinderInterface.html">
+                  ViewFinderInterface.php
+                </a>
+              
+                
+                <a class="source" href="ViewServiceProvider.html">
+                  ViewServiceProvider.php
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>Factory.php</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-preprocessor">&lt;?php</span> <span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">View</span>;
+
+<span class="hljs-keyword">use</span> <span class="hljs-title">Closure</span>;
+<span class="hljs-keyword">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Events</span>\<span class="hljs-title">Dispatcher</span>;
+<span class="hljs-keyword">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Container</span>\<span class="hljs-title">Container</span>;
+<span class="hljs-keyword">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">View</span>\<span class="hljs-title">Engines</span>\<span class="hljs-title">EngineResolver</span>;
+<span class="hljs-keyword">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Support</span>\<span class="hljs-title">Contracts</span>\<span class="hljs-title">ArrayableInterface</span> <span class="hljs-title">as</span> <span class="hljs-title">Arrayable</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Factory</span> </span>{
+
+	<span class="hljs-comment">/**
+	 * The engine implementation.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> \Illuminate\View\Engines\EngineResolver
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$engines</span>;
+
+	<span class="hljs-comment">/**
+	 * The view finder implementation.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> \Illuminate\View\ViewFinderInterface
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$finder</span>;
+
+	<span class="hljs-comment">/**
+	 * The event dispatcher instance.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> \Illuminate\Events\Dispatcher
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$events</span>;
+
+	<span class="hljs-comment">/**
+	 * The IoC container instance.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> \Illuminate\Container\Container
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$container</span>;
+
+	<span class="hljs-comment">/**
+	 * Data that should be available to all templates.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$shared</span> = <span class="hljs-keyword">array</span>();
+
+	<span class="hljs-comment">/**
+	 * Array of registered view name aliases.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$aliases</span> = <span class="hljs-keyword">array</span>();
+
+	<span class="hljs-comment">/**
+	 * All of the registered view names.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$names</span> = <span class="hljs-keyword">array</span>();
+
+	<span class="hljs-comment">/**
+	 * The extension to engine bindings.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$extensions</span> = <span class="hljs-keyword">array</span>(<span class="hljs-string">'blade.php'</span> =&gt; <span class="hljs-string">'blade'</span>, <span class="hljs-string">'php'</span> =&gt; <span class="hljs-string">'php'</span>);
+
+	<span class="hljs-comment">/**
+	 * The view composer events.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$composers</span> = <span class="hljs-keyword">array</span>();
+
+	<span class="hljs-comment">/**
+	 * All of the finished, captured sections.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$sections</span> = <span class="hljs-keyword">array</span>();
+
+	<span class="hljs-comment">/**
+	 * The stack of in-progress sections.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$sectionStack</span> = <span class="hljs-keyword">array</span>();
+
+	<span class="hljs-comment">/**
+	 * The number of active rendering operations.
+	 *
+	 *<span class="hljs-phpdoc"> @var</span> int
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-variable">$renderCount</span> = <span class="hljs-number">0</span>;
+
+	<span class="hljs-comment">/**
+	 * Create a new view factory instance.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  \Illuminate\View\Engines\EngineResolver  $engines
+	 *<span class="hljs-phpdoc"> @param</span>  \Illuminate\View\ViewFinderInterface  $finder
+	 *<span class="hljs-phpdoc"> @param</span>  \Illuminate\Events\Dispatcher  $events
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">(EngineResolver <span class="hljs-variable">$engines</span>, ViewFinderInterface <span class="hljs-variable">$finder</span>, Dispatcher <span class="hljs-variable">$events</span>)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;finder = <span class="hljs-variable">$finder</span>;
+		<span class="hljs-variable">$this</span>-&gt;events = <span class="hljs-variable">$events</span>;
+		<span class="hljs-variable">$this</span>-&gt;engines = <span class="hljs-variable">$engines</span>;
+
+		<span class="hljs-variable">$this</span>-&gt;share(<span class="hljs-string">'__env'</span>, <span class="hljs-variable">$this</span>);
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the evaluated view contents for the given view.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $view
+	 *<span class="hljs-phpdoc"> @param</span>  array   $data
+	 *<span class="hljs-phpdoc"> @param</span>  array   $mergeData
+	 *<span class="hljs-phpdoc"> @return</span> \Illuminate\View\View
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">make</span><span class="hljs-params">(<span class="hljs-variable">$view</span>, <span class="hljs-variable">$data</span> = array<span class="hljs-params">()</span>, <span class="hljs-variable">$mergeData</span> = array<span class="hljs-params">()</span>)</span>
+	</span>{
+		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$this</span>-&gt;aliases[<span class="hljs-variable">$view</span>])) <span class="hljs-variable">$view</span> = <span class="hljs-variable">$this</span>-&gt;aliases[<span class="hljs-variable">$view</span>];
+
+		<span class="hljs-variable">$path</span> = <span class="hljs-variable">$this</span>-&gt;finder-&gt;find(<span class="hljs-variable">$view</span>);
+
+		<span class="hljs-variable">$data</span> = array_merge(<span class="hljs-variable">$mergeData</span>, <span class="hljs-variable">$this</span>-&gt;parseData(<span class="hljs-variable">$data</span>));
+
+		<span class="hljs-variable">$this</span>-&gt;callCreator(<span class="hljs-variable">$view</span> = <span class="hljs-keyword">new</span> View(<span class="hljs-variable">$this</span>, <span class="hljs-variable">$this</span>-&gt;getEngineFromPath(<span class="hljs-variable">$path</span>), <span class="hljs-variable">$view</span>, <span class="hljs-variable">$path</span>, <span class="hljs-variable">$data</span>));
+
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$view</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Parse the given data into a raw array.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  mixed  $data
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">parseData</span><span class="hljs-params">(<span class="hljs-variable">$data</span>)</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$data</span> <span class="hljs-keyword">instanceof</span> Arrayable ? <span class="hljs-variable">$data</span>-&gt;toArray() : <span class="hljs-variable">$data</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the evaluated view contents for a named view.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $view
+	 *<span class="hljs-phpdoc"> @param</span>  mixed   $data
+	 *<span class="hljs-phpdoc"> @return</span> \Illuminate\View\View
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">of</span><span class="hljs-params">(<span class="hljs-variable">$view</span>, <span class="hljs-variable">$data</span> = array<span class="hljs-params">()</span>)</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;make(<span class="hljs-variable">$this</span>-&gt;names[<span class="hljs-variable">$view</span>], <span class="hljs-variable">$data</span>);
+	}
+
+	<span class="hljs-comment">/**
+	 * Register a named view.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $view
+	 *<span class="hljs-phpdoc"> @param</span>  string  $name
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">name</span><span class="hljs-params">(<span class="hljs-variable">$view</span>, <span class="hljs-variable">$name</span>)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;names[<span class="hljs-variable">$name</span>] = <span class="hljs-variable">$view</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Add an alias for a view.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $view
+	 *<span class="hljs-phpdoc"> @param</span>  string  $alias
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">alias</span><span class="hljs-params">(<span class="hljs-variable">$view</span>, <span class="hljs-variable">$alias</span>)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;aliases[<span class="hljs-variable">$alias</span>] = <span class="hljs-variable">$view</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Determine if a given view exists.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $view
+	 *<span class="hljs-phpdoc"> @return</span> bool
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">exists</span><span class="hljs-params">(<span class="hljs-variable">$view</span>)</span>
+	</span>{
+		<span class="hljs-keyword">try</span>
+		{
+			<span class="hljs-variable">$this</span>-&gt;finder-&gt;find(<span class="hljs-variable">$view</span>);
+		}
+		<span class="hljs-keyword">catch</span> (\InvalidArgumentException <span class="hljs-variable">$e</span>)
+		{
+			<span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+		}
+
+		<span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the rendered contents of a partial from a loop.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $view
+	 *<span class="hljs-phpdoc"> @param</span>  array   $data
+	 *<span class="hljs-phpdoc"> @param</span>  string  $iterator
+	 *<span class="hljs-phpdoc"> @param</span>  string  $empty
+	 *<span class="hljs-phpdoc"> @return</span> string
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">renderEach</span><span class="hljs-params">(<span class="hljs-variable">$view</span>, <span class="hljs-variable">$data</span>, <span class="hljs-variable">$iterator</span>, <span class="hljs-variable">$empty</span> = <span class="hljs-string">'raw|'</span>)</span>
+	</span>{
+		<span class="hljs-variable">$result</span> = <span class="hljs-string">''</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>If is actually data in the array, we will loop through the data and append
+an instance of the partial view to the final result HTML passing in the
+iterated value of this data array, allowing the views to access them.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span> (count(<span class="hljs-variable">$data</span>) &gt; <span class="hljs-number">0</span>)
+		{
+			<span class="hljs-keyword">foreach</span> (<span class="hljs-variable">$data</span> <span class="hljs-keyword">as</span> <span class="hljs-variable">$key</span> =&gt; <span class="hljs-variable">$value</span>)
+			{
+				<span class="hljs-variable">$data</span> = <span class="hljs-keyword">array</span>(<span class="hljs-string">'key'</span> =&gt; <span class="hljs-variable">$key</span>, <span class="hljs-variable">$iterator</span> =&gt; <span class="hljs-variable">$value</span>);
+
+				<span class="hljs-variable">$result</span> .= <span class="hljs-variable">$this</span>-&gt;make(<span class="hljs-variable">$view</span>, <span class="hljs-variable">$data</span>)-&gt;render();
+			}
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>If there is no data in the array, we will render the contents of the empty
+view. Alternatively, the “empty view” could be a raw string that begins
+with “raw|” for convenience and to let this know that it is a string.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">else</span>
+		{
+			<span class="hljs-keyword">if</span> (starts_with(<span class="hljs-variable">$empty</span>, <span class="hljs-string">'raw|'</span>))
+			{
+				<span class="hljs-variable">$result</span> = substr(<span class="hljs-variable">$empty</span>, <span class="hljs-number">4</span>);
+			}
+			<span class="hljs-keyword">else</span>
+			{
+				<span class="hljs-variable">$result</span> = <span class="hljs-variable">$this</span>-&gt;make(<span class="hljs-variable">$empty</span>)-&gt;render();
+			}
+		}
+
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$result</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the appropriate view engine for the given path.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $path
+	 *<span class="hljs-phpdoc"> @return</span> \Illuminate\View\Engines\EngineInterface
+	 *
+	 *<span class="hljs-phpdoc"> @throws</span> \InvalidArgumentException
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getEngineFromPath</span><span class="hljs-params">(<span class="hljs-variable">$path</span>)</span>
+	</span>{
+		<span class="hljs-keyword">if</span> ( ! <span class="hljs-variable">$extension</span> = <span class="hljs-variable">$this</span>-&gt;getExtension(<span class="hljs-variable">$path</span>))
+		{
+			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> \InvalidArgumentException(<span class="hljs-string">"Unrecognized extension in file: $path"</span>);
+		}
+
+		<span class="hljs-variable">$engine</span> = <span class="hljs-variable">$this</span>-&gt;extensions[<span class="hljs-variable">$extension</span>];
+
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;engines-&gt;resolve(<span class="hljs-variable">$engine</span>);
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the extension used by the view file.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $path
+	 *<span class="hljs-phpdoc"> @return</span> string
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getExtension</span><span class="hljs-params">(<span class="hljs-variable">$path</span>)</span>
+	</span>{
+		<span class="hljs-variable">$extensions</span> = array_keys(<span class="hljs-variable">$this</span>-&gt;extensions);
+
+		<span class="hljs-keyword">return</span> array_first(<span class="hljs-variable">$extensions</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(<span class="hljs-variable">$key</span>, <span class="hljs-variable">$value</span>)</span> <span class="hljs-title">use</span> <span class="hljs-params">(<span class="hljs-variable">$path</span>)</span>
+		</span>{
+			<span class="hljs-keyword">return</span> ends_with(<span class="hljs-variable">$path</span>, <span class="hljs-variable">$value</span>);
+		});
+	}
+
+	<span class="hljs-comment">/**
+	 * Add a piece of shared data to the environment.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $key
+	 *<span class="hljs-phpdoc"> @param</span>  mixed   $value
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">share</span><span class="hljs-params">(<span class="hljs-variable">$key</span>, <span class="hljs-variable">$value</span> = null)</span>
+	</span>{
+		<span class="hljs-keyword">if</span> ( ! is_array(<span class="hljs-variable">$key</span>)) <span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;shared[<span class="hljs-variable">$key</span>] = <span class="hljs-variable">$value</span>;
+
+		<span class="hljs-keyword">foreach</span> (<span class="hljs-variable">$key</span> <span class="hljs-keyword">as</span> <span class="hljs-variable">$innerKey</span> =&gt; <span class="hljs-variable">$innerValue</span>)
+		{
+			<span class="hljs-variable">$this</span>-&gt;share(<span class="hljs-variable">$innerKey</span>, <span class="hljs-variable">$innerValue</span>);
+		}
+	}
+
+	<span class="hljs-comment">/**
+	 * Register a view creator event.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  array|string     $views
+	 *<span class="hljs-phpdoc"> @param</span>  \Closure|string  $callback
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">creator</span><span class="hljs-params">(<span class="hljs-variable">$views</span>, <span class="hljs-variable">$callback</span>)</span>
+	</span>{
+		<span class="hljs-variable">$creators</span> = <span class="hljs-keyword">array</span>();
+
+		<span class="hljs-keyword">foreach</span> ((<span class="hljs-keyword">array</span>) <span class="hljs-variable">$views</span> <span class="hljs-keyword">as</span> <span class="hljs-variable">$view</span>)
+		{
+			<span class="hljs-variable">$creators</span>[] = <span class="hljs-variable">$this</span>-&gt;addViewEvent(<span class="hljs-variable">$view</span>, <span class="hljs-variable">$callback</span>, <span class="hljs-string">'creating: '</span>);
+		}
+
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$creators</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Register multiple view composers via an array.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  array  $composers
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">composers</span><span class="hljs-params">(array <span class="hljs-variable">$composers</span>)</span>
+	</span>{
+		<span class="hljs-variable">$registered</span> = <span class="hljs-keyword">array</span>();
+
+		<span class="hljs-keyword">foreach</span> (<span class="hljs-variable">$composers</span> <span class="hljs-keyword">as</span> <span class="hljs-variable">$callback</span> =&gt; <span class="hljs-variable">$views</span>)
+		{
+			<span class="hljs-variable">$registered</span> = array_merge(<span class="hljs-variable">$registered</span>, <span class="hljs-variable">$this</span>-&gt;composer(<span class="hljs-variable">$views</span>, <span class="hljs-variable">$callback</span>));
+		}
+
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$registered</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Register a view composer event.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  array|string  $views
+	 *<span class="hljs-phpdoc"> @param</span>  \Closure|string  $callback
+	 *<span class="hljs-phpdoc"> @param</span>  int|null  $priority
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">composer</span><span class="hljs-params">(<span class="hljs-variable">$views</span>, <span class="hljs-variable">$callback</span>, <span class="hljs-variable">$priority</span> = null)</span>
+	</span>{
+		<span class="hljs-variable">$composers</span> = <span class="hljs-keyword">array</span>();
+
+		<span class="hljs-keyword">foreach</span> ((<span class="hljs-keyword">array</span>) <span class="hljs-variable">$views</span> <span class="hljs-keyword">as</span> <span class="hljs-variable">$view</span>)
+		{
+			<span class="hljs-variable">$composers</span>[] = <span class="hljs-variable">$this</span>-&gt;addViewEvent(<span class="hljs-variable">$view</span>, <span class="hljs-variable">$callback</span>, <span class="hljs-string">'composing: '</span>, <span class="hljs-variable">$priority</span>);
+		}
+
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$composers</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Add an event for a given view.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $view
+	 *<span class="hljs-phpdoc"> @param</span>  \Closure|string  $callback
+	 *<span class="hljs-phpdoc"> @param</span>  string  $prefix
+	 *<span class="hljs-phpdoc"> @param</span>  int|null  $priority
+	 *<span class="hljs-phpdoc"> @return</span> \Closure
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addViewEvent</span><span class="hljs-params">(<span class="hljs-variable">$view</span>, <span class="hljs-variable">$callback</span>, <span class="hljs-variable">$prefix</span> = <span class="hljs-string">'composing: '</span>, <span class="hljs-variable">$priority</span> = null)</span>
+	</span>{
+		<span class="hljs-keyword">if</span> (<span class="hljs-variable">$callback</span> <span class="hljs-keyword">instanceof</span> Closure)
+		{
+			<span class="hljs-variable">$this</span>-&gt;addEventListener(<span class="hljs-variable">$prefix</span>.<span class="hljs-variable">$view</span>, <span class="hljs-variable">$callback</span>, <span class="hljs-variable">$priority</span>);
+
+			<span class="hljs-keyword">return</span> <span class="hljs-variable">$callback</span>;
+		}
+		<span class="hljs-keyword">elseif</span> (is_string(<span class="hljs-variable">$callback</span>))
+		{
+			<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;addClassEvent(<span class="hljs-variable">$view</span>, <span class="hljs-variable">$callback</span>, <span class="hljs-variable">$prefix</span>, <span class="hljs-variable">$priority</span>);
+		}
+	}
+
+	<span class="hljs-comment">/**
+	 * Register a class based view composer.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string    $view
+	 *<span class="hljs-phpdoc"> @param</span>  string    $class
+	 *<span class="hljs-phpdoc"> @param</span>  string    $prefix
+	 *<span class="hljs-phpdoc"> @param</span>  int|null  $priority
+	 *<span class="hljs-phpdoc"> @return</span> \Closure
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addClassEvent</span><span class="hljs-params">(<span class="hljs-variable">$view</span>, <span class="hljs-variable">$class</span>, <span class="hljs-variable">$prefix</span>, <span class="hljs-variable">$priority</span> = null)</span>
+	</span>{
+		<span class="hljs-variable">$name</span> = <span class="hljs-variable">$prefix</span>.<span class="hljs-variable">$view</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>When registering a class based view “composer”, we will simply resolve the
+classes from the application IoC container then call the compose method
+on the instance. This allows for convenient, testable view composers.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-variable">$callback</span> = <span class="hljs-variable">$this</span>-&gt;buildClassEventCallback(<span class="hljs-variable">$class</span>, <span class="hljs-variable">$prefix</span>);
+
+		<span class="hljs-variable">$this</span>-&gt;addEventListener(<span class="hljs-variable">$name</span>, <span class="hljs-variable">$callback</span>, <span class="hljs-variable">$priority</span>);
+
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$callback</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Add a listener to the event dispatcher.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string   $name
+	 *<span class="hljs-phpdoc"> @param</span>  \Closure $callback
+	 *<span class="hljs-phpdoc"> @param</span>  int      $priority
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addEventListener</span><span class="hljs-params">(<span class="hljs-variable">$name</span>, <span class="hljs-variable">$callback</span>, <span class="hljs-variable">$priority</span> = null)</span>
+	</span>{
+		<span class="hljs-keyword">if</span> (is_null(<span class="hljs-variable">$priority</span>))
+		{
+			<span class="hljs-variable">$this</span>-&gt;events-&gt;listen(<span class="hljs-variable">$name</span>, <span class="hljs-variable">$callback</span>);
+		}
+		<span class="hljs-keyword">else</span>
+		{
+			<span class="hljs-variable">$this</span>-&gt;events-&gt;listen(<span class="hljs-variable">$name</span>, <span class="hljs-variable">$callback</span>, <span class="hljs-variable">$priority</span>);
+		}
+	}
+
+	<span class="hljs-comment">/**
+	 * Build a class based container callback Closure.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $class
+	 *<span class="hljs-phpdoc"> @param</span>  string  $prefix
+	 *<span class="hljs-phpdoc"> @return</span> \Closure
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">buildClassEventCallback</span><span class="hljs-params">(<span class="hljs-variable">$class</span>, <span class="hljs-variable">$prefix</span>)</span>
+	</span>{
+		<span class="hljs-variable">$container</span> = <span class="hljs-variable">$this</span>-&gt;container;
+
+		<span class="hljs-keyword">list</span>(<span class="hljs-variable">$class</span>, <span class="hljs-variable">$method</span>) = <span class="hljs-variable">$this</span>-&gt;parseClassEvent(<span class="hljs-variable">$class</span>, <span class="hljs-variable">$prefix</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Once we have the class and method name, we can build the Closure to resolve
+the instance out of the IoC container and call the method on it with the
+given arguments that are passed to the Closure as the composer’s data.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> <span class="hljs-title">use</span> <span class="hljs-params">(<span class="hljs-variable">$class</span>, <span class="hljs-variable">$method</span>, <span class="hljs-variable">$container</span>)</span>
+		</span>{
+			<span class="hljs-variable">$callable</span> = <span class="hljs-keyword">array</span>(<span class="hljs-variable">$container</span>-&gt;make(<span class="hljs-variable">$class</span>), <span class="hljs-variable">$method</span>);
+
+			<span class="hljs-keyword">return</span> call_user_func_array(<span class="hljs-variable">$callable</span>, func_get_args());
+		};
+	}
+
+	<span class="hljs-comment">/**
+	 * Parse a class based composer name.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $class
+	 *<span class="hljs-phpdoc"> @param</span>  string  $prefix
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">parseClassEvent</span><span class="hljs-params">(<span class="hljs-variable">$class</span>, <span class="hljs-variable">$prefix</span>)</span>
+	</span>{
+		<span class="hljs-keyword">if</span> (str_contains(<span class="hljs-variable">$class</span>, <span class="hljs-string">'@'</span>))
+		{
+			<span class="hljs-keyword">return</span> explode(<span class="hljs-string">'@'</span>, <span class="hljs-variable">$class</span>);
+		}
+
+		<span class="hljs-variable">$method</span> = str_contains(<span class="hljs-variable">$prefix</span>, <span class="hljs-string">'composing'</span>) ? <span class="hljs-string">'compose'</span> : <span class="hljs-string">'create'</span>;
+
+		<span class="hljs-keyword">return</span> <span class="hljs-keyword">array</span>(<span class="hljs-variable">$class</span>, <span class="hljs-variable">$method</span>);
+	}
+
+	<span class="hljs-comment">/**
+	 * Call the composer for a given view.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  \Illuminate\View\View  $view
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">callComposer</span><span class="hljs-params">(View <span class="hljs-variable">$view</span>)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;events-&gt;fire(<span class="hljs-string">'composing: '</span>.<span class="hljs-variable">$view</span>-&gt;getName(), <span class="hljs-keyword">array</span>(<span class="hljs-variable">$view</span>));
+	}
+
+	<span class="hljs-comment">/**
+	 * Call the creator for a given view.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  \Illuminate\View\View  $view
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">callCreator</span><span class="hljs-params">(View <span class="hljs-variable">$view</span>)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;events-&gt;fire(<span class="hljs-string">'creating: '</span>.<span class="hljs-variable">$view</span>-&gt;getName(), <span class="hljs-keyword">array</span>(<span class="hljs-variable">$view</span>));
+	}
+
+	<span class="hljs-comment">/**
+	 * Start injecting content into a section.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $section
+	 *<span class="hljs-phpdoc"> @param</span>  string  $content
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">startSection</span><span class="hljs-params">(<span class="hljs-variable">$section</span>, <span class="hljs-variable">$content</span> = <span class="hljs-string">''</span>)</span>
+	</span>{
+		<span class="hljs-keyword">if</span> (<span class="hljs-variable">$content</span> === <span class="hljs-string">''</span>)
+		{
+			<span class="hljs-keyword">if</span> (ob_start())
+			{
+				<span class="hljs-variable">$this</span>-&gt;sectionStack[] = <span class="hljs-variable">$section</span>;
+			}
+		}
+		<span class="hljs-keyword">else</span>
+		{
+			<span class="hljs-variable">$this</span>-&gt;extendSection(<span class="hljs-variable">$section</span>, <span class="hljs-variable">$content</span>);
+		}
+	}
+
+	<span class="hljs-comment">/**
+	 * Inject inline content into a section.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $section
+	 *<span class="hljs-phpdoc"> @param</span>  string  $content
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">inject</span><span class="hljs-params">(<span class="hljs-variable">$section</span>, <span class="hljs-variable">$content</span>)</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;startSection(<span class="hljs-variable">$section</span>, <span class="hljs-variable">$content</span>);
+	}
+
+	<span class="hljs-comment">/**
+	 * Stop injecting content into a section and return its contents.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> string
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">yieldSection</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;yieldContent(<span class="hljs-variable">$this</span>-&gt;stopSection());
+	}
+
+	<span class="hljs-comment">/**
+	 * Stop injecting content into a section.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  bool  $overwrite
+	 *<span class="hljs-phpdoc"> @return</span> string
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">stopSection</span><span class="hljs-params">(<span class="hljs-variable">$overwrite</span> = false)</span>
+	</span>{
+		<span class="hljs-variable">$last</span> = array_pop(<span class="hljs-variable">$this</span>-&gt;sectionStack);
+
+		<span class="hljs-keyword">if</span> (<span class="hljs-variable">$overwrite</span>)
+		{
+			<span class="hljs-variable">$this</span>-&gt;sections[<span class="hljs-variable">$last</span>] = ob_get_clean();
+		}
+		<span class="hljs-keyword">else</span>
+		{
+			<span class="hljs-variable">$this</span>-&gt;extendSection(<span class="hljs-variable">$last</span>, ob_get_clean());
+		}
+
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$last</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Stop injecting content into a section and append it.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> string
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">appendSection</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-variable">$last</span> = array_pop(<span class="hljs-variable">$this</span>-&gt;sectionStack);
+
+		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$this</span>-&gt;sections[<span class="hljs-variable">$last</span>]))
+		{
+			<span class="hljs-variable">$this</span>-&gt;sections[<span class="hljs-variable">$last</span>] .= ob_get_clean();
+		}
+		<span class="hljs-keyword">else</span>
+		{
+			<span class="hljs-variable">$this</span>-&gt;sections[<span class="hljs-variable">$last</span>] = ob_get_clean();
+		}
+
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$last</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Append content to a given section.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $section
+	 *<span class="hljs-phpdoc"> @param</span>  string  $content
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">extendSection</span><span class="hljs-params">(<span class="hljs-variable">$section</span>, <span class="hljs-variable">$content</span>)</span>
+	</span>{
+		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$this</span>-&gt;sections[<span class="hljs-variable">$section</span>]))
+		{
+			<span class="hljs-variable">$content</span> = str_replace(<span class="hljs-string">'@parent'</span>, <span class="hljs-variable">$content</span>, <span class="hljs-variable">$this</span>-&gt;sections[<span class="hljs-variable">$section</span>]);
+		}
+
+		<span class="hljs-variable">$this</span>-&gt;sections[<span class="hljs-variable">$section</span>] = <span class="hljs-variable">$content</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the string contents of a section.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $section
+	 *<span class="hljs-phpdoc"> @param</span>  string  $default
+	 *<span class="hljs-phpdoc"> @return</span> string
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">yieldContent</span><span class="hljs-params">(<span class="hljs-variable">$section</span>, <span class="hljs-variable">$default</span> = <span class="hljs-string">''</span>)</span>
+	</span>{
+		<span class="hljs-variable">$sectionContent</span> = <span class="hljs-variable">$default</span>;
+
+		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$this</span>-&gt;sections[<span class="hljs-variable">$section</span>]))
+		{
+			<span class="hljs-variable">$sectionContent</span> = <span class="hljs-variable">$this</span>-&gt;sections[<span class="hljs-variable">$section</span>];
+		}
+
+		<span class="hljs-keyword">return</span> str_replace(<span class="hljs-string">'@parent'</span>, <span class="hljs-string">''</span>, <span class="hljs-variable">$sectionContent</span>);
+	}
+
+	<span class="hljs-comment">/**
+	 * Flush all of the section contents.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">flushSections</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;sections = <span class="hljs-keyword">array</span>();
+
+		<span class="hljs-variable">$this</span>-&gt;sectionStack = <span class="hljs-keyword">array</span>();
+	}
+
+	<span class="hljs-comment">/**
+	 * Flush all of the section contents if done rendering.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">flushSectionsIfDoneRendering</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">if</span> (<span class="hljs-variable">$this</span>-&gt;doneRendering()) <span class="hljs-variable">$this</span>-&gt;flushSections();
+	}
+
+	<span class="hljs-comment">/**
+	 * Increment the rendering counter.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">incrementRender</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;renderCount++;
+	}
+
+	<span class="hljs-comment">/**
+	 * Decrement the rendering counter.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">decrementRender</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;renderCount--;
+	}
+
+	<span class="hljs-comment">/**
+	 * Check if there are no active render operations.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> bool
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">doneRendering</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;renderCount == <span class="hljs-number">0</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Add a location to the array of view locations.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $location
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addLocation</span><span class="hljs-params">(<span class="hljs-variable">$location</span>)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;finder-&gt;addLocation(<span class="hljs-variable">$location</span>);
+	}
+
+	<span class="hljs-comment">/**
+	 * Add a new namespace to the loader.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $namespace
+	 *<span class="hljs-phpdoc"> @param</span>  string|array  $hints
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addNamespace</span><span class="hljs-params">(<span class="hljs-variable">$namespace</span>, <span class="hljs-variable">$hints</span>)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;finder-&gt;addNamespace(<span class="hljs-variable">$namespace</span>, <span class="hljs-variable">$hints</span>);
+	}
+
+	<span class="hljs-comment">/**
+	 * Prepend a new namespace to the loader.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $namespace
+	 *<span class="hljs-phpdoc"> @param</span>  string|array  $hints
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">prependNamespace</span><span class="hljs-params">(<span class="hljs-variable">$namespace</span>, <span class="hljs-variable">$hints</span>)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;finder-&gt;prependNamespace(<span class="hljs-variable">$namespace</span>, <span class="hljs-variable">$hints</span>);
+	}
+
+	<span class="hljs-comment">/**
+	 * Register a valid view extension and its engine.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string    $extension
+	 *<span class="hljs-phpdoc"> @param</span>  string    $engine
+	 *<span class="hljs-phpdoc"> @param</span>  \Closure  $resolver
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addExtension</span><span class="hljs-params">(<span class="hljs-variable">$extension</span>, <span class="hljs-variable">$engine</span>, <span class="hljs-variable">$resolver</span> = null)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;finder-&gt;addExtension(<span class="hljs-variable">$extension</span>);
+
+		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">isset</span>(<span class="hljs-variable">$resolver</span>))
+		{
+			<span class="hljs-variable">$this</span>-&gt;engines-&gt;register(<span class="hljs-variable">$engine</span>, <span class="hljs-variable">$resolver</span>);
+		}
+
+		<span class="hljs-keyword">unset</span>(<span class="hljs-variable">$this</span>-&gt;extensions[<span class="hljs-variable">$extension</span>]);
+
+		<span class="hljs-variable">$this</span>-&gt;extensions = array_merge(<span class="hljs-keyword">array</span>(<span class="hljs-variable">$extension</span> =&gt; <span class="hljs-variable">$engine</span>), <span class="hljs-variable">$this</span>-&gt;extensions);
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the extension to engine bindings.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getExtensions</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;extensions;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the engine resolver instance.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> \Illuminate\View\Engines\EngineResolver
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getEngineResolver</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;engines;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the view finder instance.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> \Illuminate\View\ViewFinderInterface
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getFinder</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;finder;
+	}
+
+	<span class="hljs-comment">/**
+	 * Set the view finder instance.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  \Illuminate\View\ViewFinderInterface  $finder
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">setFinder</span><span class="hljs-params">(ViewFinderInterface <span class="hljs-variable">$finder</span>)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;finder = <span class="hljs-variable">$finder</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the event dispatcher instance.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> \Illuminate\Events\Dispatcher
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getDispatcher</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;events;
+	}
+
+	<span class="hljs-comment">/**
+	 * Set the event dispatcher instance.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  \Illuminate\Events\Dispatcher
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">setDispatcher</span><span class="hljs-params">(Dispatcher <span class="hljs-variable">$events</span>)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;events = <span class="hljs-variable">$events</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the IoC container instance.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> \Illuminate\Container\Container
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getContainer</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;container;
+	}
+
+	<span class="hljs-comment">/**
+	 * Set the IoC container instance.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  \Illuminate\Container\Container  $container
+	 *<span class="hljs-phpdoc"> @return</span> void
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">setContainer</span><span class="hljs-params">(Container <span class="hljs-variable">$container</span>)</span>
+	</span>{
+		<span class="hljs-variable">$this</span>-&gt;container = <span class="hljs-variable">$container</span>;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get an item from the shared data.
+	 *
+	 *<span class="hljs-phpdoc"> @param</span>  string  $key
+	 *<span class="hljs-phpdoc"> @param</span>  mixed   $default
+	 *<span class="hljs-phpdoc"> @return</span> mixed
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">shared</span><span class="hljs-params">(<span class="hljs-variable">$key</span>, <span class="hljs-variable">$default</span> = null)</span>
+	</span>{
+		<span class="hljs-keyword">return</span> array_get(<span class="hljs-variable">$this</span>-&gt;shared, <span class="hljs-variable">$key</span>, <span class="hljs-variable">$default</span>);
+	}
+
+	<span class="hljs-comment">/**
+	 * Get all of the shared data for the environment.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getShared</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;shared;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get the entire array of sections.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getSections</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;sections;
+	}
+
+	<span class="hljs-comment">/**
+	 * Get all of the registered named views in environment.
+	 *
+	 *<span class="hljs-phpdoc"> @return</span> array
+	 */</span>
+	<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getNames</span><span class="hljs-params">()</span>
+	</span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;names;
+	}
+
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
