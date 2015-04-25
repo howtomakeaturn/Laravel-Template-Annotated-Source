@@ -2,6 +2,7 @@
 
 use Illuminate\View\Compilers\CompilerInterface;
 
+// 看好喔，Blade是PHP的子類別喔
 class CompilerEngine extends PhpEngine {
 
 	/**
@@ -39,6 +40,12 @@ class CompilerEngine extends PhpEngine {
 	public function get($path, array $data = array())
 	{
 		$this->lastCompiled[] = $path;
+
+        // Blade compile是這樣喔：把blade compile成一般的PHP 模板
+        
+        // 接著用evaluatePath，就跟原本的PHP Engine一樣
+        
+        // 至於怎樣叫「過期」、compile好的模板放在哪邊，就需要看Compiler了
 
 		// If this given view has expired, which means it has simply been edited since
 		// it was last compiled, we will re-compile the views so we can evaluate a
