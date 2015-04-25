@@ -25,12 +25,14 @@ abstract class Compiler {
 	 * @param  string  $cachePath
 	 * @return void
 	 */
+     // 注意這constructor injection的運用喔：一個是實體、一個是字串（路徑設定）
 	public function __construct(Filesystem $files, $cachePath)
 	{
 		$this->files = $files;
 		$this->cachePath = $cachePath;
 	}
 
+    // compiled後的路徑就是把路徑做md5運算啦
 	/**
 	 * Get the path to the compiled version of a view.
 	 *
@@ -42,6 +44,9 @@ abstract class Compiler {
 		return $this->cachePath.'/'.md5($path);
 	}
 
+    // PHP 至少就有filemtime函式可以得知檔案修改時間
+    
+    // 不要太震驚阿
 	/**
 	 * Determine if the view at the given path is expired.
 	 *

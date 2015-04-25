@@ -1,5 +1,11 @@
 <?php namespace Illuminate\View\Compilers;
+// Compilers資料夾提供一個interface
 
+// 大家記得遵守interface跟compiler溝通喔
+
+// 它只提供三個功能
+
+// compile下去、找到compile後的存放路徑、檢查過期與否
 interface CompilerInterface {
 
 	/**

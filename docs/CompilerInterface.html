@@ -58,9 +58,61 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-preprocessor">&lt;?php</span> <span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">View</span>\<span class="hljs-title">Compilers</span>;
+            <div class="content"><div class='highlight'><pre><span class="hljs-preprocessor">&lt;?php</span> <span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">View</span>\<span class="hljs-title">Compilers</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Compilers資料夾提供一個interface</p>
 
-<span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">CompilerInterface</span> </span>{
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>大家記得遵守interface跟compiler溝通喔</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>它只提供三個功能</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>compile下去、找到compile後的存放路徑、檢查過期與否</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">CompilerInterface</span> </span>{
 
 	<span class="hljs-comment">/**
 	 * Get the path to the compiled version of a view.
