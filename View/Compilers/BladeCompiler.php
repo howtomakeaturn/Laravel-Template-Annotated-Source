@@ -1,7 +1,11 @@
 <?php namespace Illuminate\View\Compilers;
 
 use Closure;
+// Compiler本身會做的事都在Compiler了
 
+// 只跟Blade相關的事則在這份BladeCompiler
+
+// 有必要分這麼細嗎？真是太猛啦
 class BladeCompiler extends Compiler implements CompilerInterface {
 
 	/**
